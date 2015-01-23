@@ -32,10 +32,12 @@ public class Server {
 		}
 	}
 
+	//set all users into a hashmap
 	public void setUsers(HashMap<String, String> users){
 		this.users = users;
 	}
 	
+	//adds a user to the hashmap if it does not exist already
 	public boolean addUser(String username, String password){
 		if(users.containsKey(username)){
 			return false;
@@ -47,6 +49,7 @@ public class Server {
 		}
 	}
 
+	//checks if a username and password is correct
 	public boolean isUser(String username, String password){
 		if(users.containsKey(username)){
 			if(users.get(username).equals(password)){
@@ -61,6 +64,7 @@ public class Server {
 		}
 	}
 
+	//adds a chatroom if it does not exist already
 	public Chatroom addChatroom(String chatroomName, String chatroomPassword, String chatroomLanguage){
 		if(isChatroom(chatroomName) != null){
 			return null;
@@ -70,6 +74,7 @@ public class Server {
 		return chatroom;
 	}
 
+	//checks if a chatroom exists
 	public Chatroom isChatroom(String chatroomName){
 		for(Chatroom room : chatrooms){
 			if(room.getName().equals(chatroomName)){
@@ -79,20 +84,24 @@ public class Server {
 		return null;
 	}	
 
+	//add a user to a list if he connects to the server
 	public User userConnected(Socket socket, String username){
 		User user = new User(socket, username);
 		currentUsers.add(user);
 		return user;
 	}
 
+	//removes a user from a list if he disconnected
 	public void userDisconnected(User user){
 		currentUsers.remove(user);
 	}
 
+	//adds a user to a chatroom if he joins
 	public void joinChatroom(User user, Chatroom chatroom){
 		chatroom.addUser(user);
 	}
 
+	//removes a user from the chatroom if he leaves
 	public void leftChatroom(User user, Chatroom chatroom){
 		chatroom.removeUser(user);
 		if(chatroom.getUsers().size() == 0){
@@ -100,10 +109,12 @@ public class Server {
 		}
 	}
 
+	//returns the list of all users currently connected
 	public LinkedList<User> getCurrentUsers() {
 		return currentUsers;
 	}
 
+	//returns a user by its name
 	public User getUserByName(String username){
 		for(User u : currentUsers){
 			if(u.getName().equals(username)){
@@ -113,15 +124,18 @@ public class Server {
 		return null;
 	}
 
+	//returns a list of chatrooms
 	public LinkedList<Chatroom> getChatrooms() {
 		return chatrooms;
 	}
 
 	public static void main (String args[]) throws IOException {
+		//creates or opens the database
 		DatabaseConnection dbc = new DatabaseConnection();
 		dbc.openDatabase();
 		dbc.createTable();
 
+		//starts the server
 		Server server = new Server (8080, dbc);
 	}
 }

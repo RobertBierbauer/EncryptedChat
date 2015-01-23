@@ -18,6 +18,7 @@ public class ServerCommunicationHandler extends Thread{
 		o = new DataOutputStream (socket.getOutputStream ());
 	}
 	
+	//method to write on the output stream
 	private void write(DataOutputStream o, String message){
 		try {	
 			byte[] m = message.getBytes("ISO-8859-1");
@@ -33,13 +34,18 @@ public class ServerCommunicationHandler extends Thread{
 			while (true) {
 				int length = i.readInt();
 				byte[] input = new byte[length];
-				i.read(input);
+				
+				//get a message form the stream
+				i.read(input);				
 				String message = new String (input, "ISO-8859-1");
 				System.out.println("Message: " + message);
 				command = getCommand(message);
 				message = message.substring(message.indexOf(" ")+1);
 				String username, password, chatroomName, chatroomPassword;
+				
+				//check the first keyword of the message
 				switch(command){
+					//manages a login request
 					case LOGIN:
 						username = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
@@ -56,6 +62,8 @@ public class ServerCommunicationHandler extends Thread{
 							write(o, "Denied Login");
 						}
 						break;
+						
+					//manages a register request
 					case REGISTER:
 						username = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
@@ -73,6 +81,8 @@ public class ServerCommunicationHandler extends Thread{
 							write(o,"Denied Register");
 						}
 						break;
+						
+					//manages a create chatroom request
 					case CREATE:
 						chatroomName = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
@@ -92,6 +102,8 @@ public class ServerCommunicationHandler extends Thread{
 							write(o,"Denied Create");
 						}
 						break;
+						
+					//manages a join chatroom request
 					case JOIN:
 						chatroomName = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
@@ -100,13 +112,19 @@ public class ServerCommunicationHandler extends Thread{
 						if(joinChatroom != null){
 							if(joinChatroom.getPassword().equals(chatroomPassword)){
 								write(o,"Accepted Join " + chatroomName);
+								
+								//add the user to the chatroom
 								LinkedList<User> usersFromChatroom = joinChatroom.getUsers();
 								String newMember = "member joined " + user.getName();
 								broadcastToList(newMember, usersFromChatroom);
 								server.joinChatroom(user, joinChatroom);
 								user.setChatroom(joinChatroom);
+								
+								//forwards a password request to a member of the chatroom
 								User userWithChatroomPassword = joinChatroom.getUsers().getFirst();
 								write(userWithChatroomPassword.getDataOutputStream(), "keyrequest " + user.getName() + " " + new String(user.getPublickey(), "ISO-8859-1"));
+								
+								//update the memberlist of the chatroom at all clients in the chatroom
 								String allMembers = "";
 								for(User user : usersFromChatroom){
 									allMembers += user.getName() + " ";
@@ -116,13 +134,16 @@ public class ServerCommunicationHandler extends Thread{
 								broadcast(chatroomMemberCount);
 							}
 							else{
+								//password for the chatroom was not correct
 								write(o,"Denied JoinPW");
 							}
 						}
 						else{
+							//chatroom does not exist anymore
 							write(o,"Denied Join");
 						}
 						break;
+					//manages the chat request and broadcasts it to the users in the chatroom
 					case CHAT:
 						chatroomName = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
@@ -132,15 +153,18 @@ public class ServerCommunicationHandler extends Thread{
 							broadcastToList(chatMessage, cr.getUsers());
 						}
 						break;
+					//manages the logout request
 					case LOGOUT:
 						server.userDisconnected(user);
 						user = null;
 						write(o,"Accepted Logout");
 						break;
+					//stores the public key from a user
 					case PUBLICKEY:
 						user.setPublickey(message.getBytes(Charset.forName("ISO-8859-1")));
 						write(o,"Accepted PublicKey");
 						break;
+					//got the encrypted chatroom key and forwards it to the new user in the chatroom
 					case KEYSEND:
 						username = message.substring(0, message.indexOf(" "));
 						chatroomPassword = message.substring(message.indexOf(" ")+1);
@@ -171,6 +195,7 @@ public class ServerCommunicationHandler extends Thread{
 		}
 	}
 	
+	//filters the first word of the message and returns the corresponding command
 	protected Command getCommand(String message) {
 		if(message.substring(0, message.indexOf(" ")).equals("login")){
 			return Command.LOGIN;
@@ -198,6 +223,7 @@ public class ServerCommunicationHandler extends Thread{
 		}
 	}
 	
+	//sends a list of the chatrooms to the users
 	private String getChatroomList(){
 		LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
 		chatrooms = server.getChatrooms();
@@ -208,12 +234,14 @@ public class ServerCommunicationHandler extends Thread{
 		return chatroomString;
 	}
 	
+	//broadcasts a message to a list of users
 	private void broadcastToList (String message, LinkedList<User> users) {
 		for(User user : users){
 			write(user.getDataOutputStream(), message);
 		}
 	}
 
+	//broadcasts a message to all users
 	private void broadcast (String message) {
 		LinkedList<User> users = server.getCurrentUsers();
 		for(User user : users){
