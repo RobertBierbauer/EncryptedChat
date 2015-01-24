@@ -1,22 +1,14 @@
 package Client;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
-
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JScrollBar;
 
 //Controller for the ChatView
 public class ChatController implements ActionListener{
 	private ChatView view;
 	private Client client;
-	private ChatHandler ch;
 	private String chatroomName;
-	private String username;
 	private String smilingSmiley;
 	private String unhappySmiley;
 	private String heart;
@@ -27,6 +19,7 @@ public class ChatController implements ActionListener{
 		this.client = client;
 		
 		view.getBtnSend().addActionListener(this);
+		view.getBtnLeave().addActionListener(this);
 		smilingSmiley = getClass().getResource("images/Smiley.png" ).toString();
 		unhappySmiley = getClass().getResource("images/UnhappySmiley.png" ).toString();
 		heart = getClass().getResource("images/Heart.png" ).toString();
@@ -44,6 +37,10 @@ public class ChatController implements ActionListener{
 				}
 				view.getTxtInput().setText("");
 			}
+		}
+		else if(e.getSource() == view.getBtnLeave()){
+			System.out.println("click");
+			client.write("leave " + chatroomName);
 		}		
 	}
 	
@@ -53,16 +50,15 @@ public class ChatController implements ActionListener{
 		this.chatroomName = chatroomName;
 	}
 	
-	public void setUsername(String username){
-		this.username = username;
-	}
-	
 	public void activate(){
 		client.setContentPane(view.getContentPane());
+		view.getTxaOutput().setText("");
+		view.getTxtInput().setText("");
 	}
 	
 	//sets the memberlist in the chat
 	public void setMemberList(LinkedList<String> members){
+		view.getModel().removeAllElements();
 		for(String member : members){
 			view.getModel().addElement(member);
 		}

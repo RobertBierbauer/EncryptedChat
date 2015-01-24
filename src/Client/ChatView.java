@@ -17,6 +17,7 @@ public class ChatView extends JFrame{
 	private DefaultListModel<String> model;
 	private JList<String> lstMemberlist;
 	private JButton btnSend;
+	private JButton btnLeave;
 	
 	public ChatView() {
 		super("Chatroom");
@@ -32,12 +33,14 @@ public class ChatView extends JFrame{
 		scrMemberlist.setPreferredSize(new Dimension(150, 0));
 		txtInput = new JTextField();
 		btnSend = new JButton("Send");
+		btnLeave = new JButton("Leave");
 		
 		//sets the location fo the components
 		BindingFactory bf = new BindingFactory();
 		Binding leftEdge = bf.leftEdge();
 		Binding topEdge = bf.topEdge();
 		Binding rightEdge = bf.rightEdge();
+		Binding belowBtnLeave = bf.below(btnLeave);
 		Binding leftOfScrMemberlist= bf.leftOf(scrMemberlist);
 		Binding rightOfScrOutput= bf.rightOf(scrOutput);
 		Binding leftOfBtnSend= bf.leftOf(btnSend);
@@ -45,11 +48,13 @@ public class ChatView extends JFrame{
 		Binding aboveBtnSend = bf.above(btnSend);
 		Binding bottomEdge = bf.bottomEdge();
 		
-		RelativeConstraints scrOutputConstraints = new RelativeConstraints(leftEdge, topEdge, leftOfScrMemberlist, aboveBtnSend);
-		RelativeConstraints scrMemberlistConstraint = new RelativeConstraints(topEdge, rightEdge, aboveBtnSend);
+		RelativeConstraints btnLeaveConstraints = new RelativeConstraints(topEdge, leftEdge);
+		RelativeConstraints scrOutputConstraints = new RelativeConstraints(leftEdge, belowBtnLeave, leftOfScrMemberlist, aboveBtnSend);
+		RelativeConstraints scrMemberlistConstraint = new RelativeConstraints(belowBtnLeave, rightEdge, aboveBtnSend);
 		RelativeConstraints txtInputConstraint = new RelativeConstraints(bottomEdge, leftEdge, leftOfBtnSend);
 		RelativeConstraints btnSendConstraint = new RelativeConstraints(bottomEdge, rightEdge);
 		
+		add(btnLeave, btnLeaveConstraints);
 		add(scrOutput, scrOutputConstraints);
 		add(scrMemberlist, scrMemberlistConstraint);
 		add(txtInput, txtInputConstraint);
@@ -99,5 +104,13 @@ public class ChatView extends JFrame{
 
 	public void setBtnSend(JButton btnSend) {
 		this.btnSend = btnSend;
-	}	
+	}
+
+	public JButton getBtnLeave() {
+		return btnLeave;
+	}
+
+	public void setBtnLeave(JButton btnLeave) {
+		this.btnLeave = btnLeave;
+	}
 }

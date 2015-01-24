@@ -53,10 +53,8 @@ public class ServerCommunicationHandler extends Thread{
 						if(server.isUser(username, password)){
 							write(o, "Accepted Login");
 							user = server.userConnected(socket, username);
-							if(server.getChatrooms().size() > 0){
-								String chatroomString = getChatroomList();
-								write(user.getDataOutputStream(), chatroomString);
-							}
+							String chatroomString = getChatroomList();
+							write(user.getDataOutputStream(), chatroomString);
 						}
 						else{
 							write(o, "Denied Login");
@@ -144,11 +142,25 @@ public class ServerCommunicationHandler extends Thread{
 						}
 						break;
 					//manages the chat request and broadcasts it to the users in the chatroom
+					case LEAVE:
+						chatroomName = message.substring(0);
+						Chatroom cr = server.isChatroom(chatroomName);
+						if(cr != null){
+							server.leftChatroom(user, cr);
+							for(User u : cr.getUsers()){
+								write(u.getDataOutputStream(), "member left " + user.getName());
+							}
+							write(o, "Accepted Leave");
+							String chatroomString = getChatroomList();
+							write(o, chatroomString);
+						}
+						break;
+					//manages the chat request and broadcasts it to the users in the chatroom
 					case CHAT:
 						chatroomName = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
 						String chatMessage = "chat " + user.getName() + " " + message;
-						Chatroom cr = server.isChatroom(chatroomName);
+						cr = server.isChatroom(chatroomName);
 						if(cr != null){
 							broadcastToList(chatMessage, cr.getUsers());
 						}
@@ -218,6 +230,9 @@ public class ServerCommunicationHandler extends Thread{
 		else if(message.substring(0, message.indexOf(" ")).equals("keysend")){
 			return Command.KEYSEND;
 		}
+		else if(message.substring(0, message.indexOf(" ")).equals("leave")){
+			return Command.LEAVE;
+		}
 		else{
 			return Command.CHAT;
 		}
@@ -228,8 +243,13 @@ public class ServerCommunicationHandler extends Thread{
 		LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
 		chatrooms = server.getChatrooms();
 		String chatroomString = "chatroom list";
-		for(Chatroom cr : chatrooms){
-			chatroomString += " " + cr.getName() + " " + cr.getPassword() + " " + cr.getUsers().size() + " " + cr.getLanguage();
+		if(chatrooms.size() >0){
+			for(Chatroom cr : chatrooms){
+				chatroomString += " " + cr.getName() + " " + cr.getPassword() + " " + cr.getUsers().size() + " " + cr.getLanguage();
+			}
+		}
+		else{
+			chatroomString += " empty";
 		}
 		return chatroomString;
 	}
@@ -250,7 +270,7 @@ public class ServerCommunicationHandler extends Thread{
 	}
 	
 	private enum Command {
-	    LOGIN, REGISTER, JOIN, CREATE, CHAT, LOGOUT, PUBLICKEY, KEYSEND
+	    LOGIN, REGISTER, JOIN, CREATE, LEAVE, CHAT, LOGOUT, PUBLICKEY, KEYSEND
 	}
 	
 }

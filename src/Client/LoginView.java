@@ -1,11 +1,5 @@
 package Client;
 import javax.swing.*;
-
-import edu.cmu.relativelayout.Binding;
-import edu.cmu.relativelayout.BindingFactory;
-import edu.cmu.relativelayout.RelativeConstraints;
-import edu.cmu.relativelayout.RelativeLayout;
-
 import java.awt.*;
 
 public class LoginView extends JFrame{

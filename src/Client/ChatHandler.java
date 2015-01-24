@@ -25,14 +25,14 @@ public class ChatHandler extends Thread{
 	private ChatController cc;
 	private CreateChatroomController ccc;
 	private HomeController hc;
-	
+
 	public ChatHandler(Client client){
 		this.client = client;
 		i = client.getInputStream();
 		o = client.getOutputStream();
 		cc = client.getChatController();
 	}
-	
+
 	public void run(){
 		while(true){
 			try {
@@ -42,7 +42,7 @@ public class ChatHandler extends Thread{
 				String message = new String(input, "ISO-8859-1");
 				String firstWord = message.substring(0, message.indexOf(" "));
 				message = message.substring(message.indexOf(" ") +1);
-				
+
 				//manages accept messages from the server
 				if(firstWord.equals("Accepted")){
 					if(message.substring(0).equals("Login") || message.substring(0).equals("Register")){
@@ -70,6 +70,9 @@ public class ChatHandler extends Thread{
 							hc = client.getHomeController();
 						}
 						hc.logout();
+					}
+					else if(message.substring(0).equals("Leave")){
+						client.getHomeController().activate();
 					}
 					else if(message.substring(0).equals("Publickey")){}
 				}
@@ -105,38 +108,39 @@ public class ChatHandler extends Thread{
 					Command command = getCommand(firstWord);
 					String operation = "";
 					switch(command){
-						//manages all member messages
-						case MEMBER:
-							operation = message.substring(0, message.indexOf(" "));
-							message = message.substring(message.indexOf(" ") +1);
-							//got a member list from the server
-							if(operation.equals("list")){
-								LinkedList<String> members = new LinkedList<String>();
-								while(message.indexOf(" ") != -1){
-									members.add(message.substring(0, message.indexOf(" ")));
-									message = message.substring(message.indexOf(" ") +1);
-								}
-								members.add(message.substring(0));
-								cc.setMemberList(members);
+					//manages all member messages
+					case MEMBER:
+						operation = message.substring(0, message.indexOf(" "));
+						message = message.substring(message.indexOf(" ") +1);
+						//got a member list from the server
+						if(operation.equals("list")){
+							LinkedList<String> members = new LinkedList<String>();
+							while(message.indexOf(" ") != -1){
+								members.add(message.substring(0, message.indexOf(" ")));
+								message = message.substring(message.indexOf(" ") +1);
 							}
-							//a member joined the chat
-							else if(operation.equals("joined")){
-								String newMemberName = message.substring(0);
-								cc.addMember(newMemberName);
-							}
-							//a member left the chat
-							else if(operation.equals("left")){
-								String newMemberName = message.substring(0);
-								cc.removeMember(newMemberName);
-							}
-							break;
+							members.add(message.substring(0));
+							cc.setMemberList(members);
+						}
+						//a member joined the chat
+						else if(operation.equals("joined")){
+							String newMemberName = message.substring(0);
+							cc.addMember(newMemberName);
+						}
+						//a member left the chat
+						else if(operation.equals("left")){
+							String newMemberName = message.substring(0);
+							cc.removeMember(newMemberName);
+						}
+						break;
 						//manages chatroom messages
-						case CHATROOM:
-							operation = message.substring(0, message.indexOf(" "));
-							message = message.substring(message.indexOf(" ") +1);
-							//got a list of chatrooms
-							if(operation.equals("list")){
-								LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
+					case CHATROOM:
+						operation = message.substring(0, message.indexOf(" "));
+						message = message.substring(message.indexOf(" ") +1);
+						//got a list of chatrooms
+						if(operation.equals("list")){
+							LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
+							if(!message.substring(0).equals("empty")){
 								while(message.indexOf(" ") != -1){
 									String chatroomName = message.substring(0, message.indexOf(" "));
 									message = message.substring(message.indexOf(" ") +1);
@@ -148,62 +152,63 @@ public class ChatHandler extends Thread{
 									message = message.substring(message.indexOf(" ") +1);
 									chatrooms.add(new Chatroom(chatroomName, chatroomPassword, chatroomLanguage, memberCount));
 								}
-								if(hc == null){
-									hc = client.getHomeController();
-								}
-								hc.setChatroomList(chatrooms);
 							}
-							//joined a chatroom
-							else if(operation.equals("joined")){
-								String chatroomName = message.substring(0);
-								message = message.substring(message.indexOf(" ") +1);
-								if(hc == null){
-									hc = client.getHomeController();
-								}
-								hc.addMemberInChatroom(chatroomName);
+							if(hc == null){
+								hc = client.getHomeController();
 							}
-							break;
+							hc.setChatroomList(chatrooms);
+						}
+						//joined a chatroom
+						else if(operation.equals("joined")){
+							String chatroomName = message.substring(0);
+							message = message.substring(message.indexOf(" ") +1);
+							if(hc == null){
+								hc = client.getHomeController();
+							}
+							hc.addMemberInChatroom(chatroomName);
+						}
+						break;
 						//manages the chat messages
-						case CHAT:
-							String username = message.substring(0, message.indexOf(" "));
-							byte[] m = message.substring(message.indexOf(" ") +1).getBytes("ISO-8859-1");
-							if(cc == null){
-								cc = client.getChatController();
-							}
-							cc.newMessage(username, m);
-							break;
+					case CHAT:
+						String username = message.substring(0, message.indexOf(" "));
+						byte[] m = message.substring(message.indexOf(" ") +1).getBytes("ISO-8859-1");
+						if(cc == null){
+							cc = client.getChatController();
+						}
+						cc.newMessage(username, m);
+						break;
 						//manages the key request
-						case KEYREQUEST:
-							String user = message.substring(0, message.indexOf(" "));
-							String userPubKey = message.substring(message.indexOf(" ") +1);
-							byte[] password = client.getChatroomPassword();
-							byte[] pubkey = userPubKey.getBytes(Charset.forName("ISO-8859-1"));
+					case KEYREQUEST:
+						String user = message.substring(0, message.indexOf(" "));
+						String userPubKey = message.substring(message.indexOf(" ") +1);
+						byte[] password = client.getChatroomPassword();
+						byte[] pubkey = userPubKey.getBytes(Charset.forName("ISO-8859-1"));
 
-							//encrypts the chat key and sends it to the server
-							try{
-								Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-								PublicKey key = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(pubkey));
-								cipher.init(Cipher.ENCRYPT_MODE, key);
-								password = cipher.doFinal(password);
-							}catch(NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e){
-								e.printStackTrace();
-							} 
-							client.write("keysend " + user + " " + new String(password, "ISO-8859-1"));
-							break;
+						//encrypts the chat key and sends it to the server
+						try{
+							Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+							PublicKey key = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(pubkey));
+							cipher.init(Cipher.ENCRYPT_MODE, key);
+							password = cipher.doFinal(password);
+						}catch(NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e){
+							e.printStackTrace();
+						} 
+						client.write("keysend " + user + " " + new String(password, "ISO-8859-1"));
+						break;
 						//got key for the chat
-						case KEYANSWER:
-							String chatroomPassword = message.substring(0);
-							client.setChatroomPassword(chatroomPassword.getBytes(Charset.forName("ISO-8859-1")));
-							break;
+					case KEYANSWER:
+						String chatroomPassword = message.substring(0);
+						client.setChatroomPassword(chatroomPassword.getBytes(Charset.forName("ISO-8859-1")));
+						break;
 					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
-	
+
 	//filters the command from a message
 	private Command getCommand(String command){
 		if(command.equals("member")){
@@ -218,7 +223,7 @@ public class ChatHandler extends Thread{
 			return Command.KEYREQUEST;
 		}
 	}
-	
+
 	private enum Command {
 		MEMBER, CHATROOM, CHAT, KEYREQUEST, KEYANSWER
 	}

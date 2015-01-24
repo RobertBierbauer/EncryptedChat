@@ -1,8 +1,6 @@
 package Client;
 import java.awt.*;
-
 import javax.swing.*;
-
 import edu.cmu.relativelayout.*;
 
 public class HomeView extends JFrame{

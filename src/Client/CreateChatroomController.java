@@ -4,13 +4,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-
 
 public class CreateChatroomController implements ActionListener{
 	private CreateChatroomView view;
 	private Client client;
-	private HomeController hc;
 	private ChatController cc;
 	
 	//manages the create chatroom view
