@@ -25,6 +25,7 @@ public class HomeController implements ActionListener{
 	private ChatController cc;
 	private LinkedList<Chatroom> chatrooms;
 
+	//manages the home view
 	public HomeController(Client client) {
 		this.view = new HomeView();
 		this.client = client;
@@ -37,6 +38,7 @@ public class HomeController implements ActionListener{
 		client.setContentPane(view.getContentPane());
 	}
 
+	//joins a chatroom
 	public void enterChatroom(String chatroomName){
 		cc = client.getChatController();
 		cc.setTitle(chatroomName);
@@ -48,6 +50,7 @@ public class HomeController implements ActionListener{
 		lc.activate();
 	}
 	
+	//updates the list of chatrooms on the home view
 	public void updateChatroomListPanel(){
 		view.getPnlChatroomsList().removeAll();
 		JPanel currentPanel = view.getPnlChatroomsList();
@@ -99,10 +102,12 @@ public class HomeController implements ActionListener{
 		view.getPnlChatroomsList().repaint();
 	}
 	
+	//password to join the chatroom was wrong
 	public void showPasswordFailedBox(){
 		JOptionPane.showMessageDialog(null, "Password was not correct!");
 	}
 
+	//chatroom could not be joined
 	public void showJoinFailedBox(){
 		JOptionPane.showMessageDialog(null, "Chatroom does not exist anymore!");
 	}
@@ -112,6 +117,7 @@ public class HomeController implements ActionListener{
 		updateChatroomListPanel();
 	}
 	
+	//increments the counter of members in the chatroom list
 	public void addMemberInChatroom(String chatroomName){
 		for(Chatroom chatroom : chatrooms){
 			if(chatroom.getName().equals(chatroomName)){

@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JScrollBar;
 
+//Controller for the ChatView
 public class ChatController implements ActionListener{
 	private ChatView view;
 	private Client client;
@@ -45,7 +46,8 @@ public class ChatController implements ActionListener{
 			}
 		}		
 	}
-			
+	
+	//sets the title of the chatroom
 	public void setTitle(String chatroomName) {
 		view.setTitle(chatroomName);
 		this.chatroomName = chatroomName;
@@ -59,6 +61,7 @@ public class ChatController implements ActionListener{
 		client.setContentPane(view.getContentPane());
 	}
 	
+	//sets the memberlist in the chat
 	public void setMemberList(LinkedList<String> members){
 		for(String member : members){
 			view.getModel().addElement(member);
@@ -67,6 +70,7 @@ public class ChatController implements ActionListener{
 		view.repaint();
 	}
 	
+	//adds a new message in the chat and replaces smileys
 	public void newMessage(String username, byte[] encryptedMessage){
 		String message = client.decryptMessage(encryptedMessage);
 		String output = view.getTxaOutput().getText();
@@ -100,12 +104,14 @@ public class ChatController implements ActionListener{
 		view.getTxaOutput().setSelectionEnd(view.getTxaOutput().getText().length());
 	}
 	
+	//adds a member to the list
 	public void addMember(String member){
 		view.getModel().addElement(member);
 		view.revalidate();
 		view.repaint();
 	}
 	
+	//removes a member from the list
 	public void removeMember(String member){
 		view.getModel().removeElement(member);
 		view.revalidate();

@@ -16,6 +16,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+//handles the messages from the server
 public class ChatHandler extends Thread{
 	private Client client;
 	private DataInputStream i;
@@ -41,6 +42,8 @@ public class ChatHandler extends Thread{
 				String message = new String(input, "ISO-8859-1");
 				String firstWord = message.substring(0, message.indexOf(" "));
 				message = message.substring(message.indexOf(" ") +1);
+				
+				//manages accept messages from the server
 				if(firstWord.equals("Accepted")){
 					if(message.substring(0).equals("Login") || message.substring(0).equals("Register")){
 						if(lc == null){
@@ -70,6 +73,7 @@ public class ChatHandler extends Thread{
 					}
 					else if(message.substring(0).equals("Publickey")){}
 				}
+				//manages denied messages from the server
 				else if(firstWord.equals("Denied")){
 					if(message.substring(0).equals("Login")){
 						if(lc == null){
@@ -96,13 +100,16 @@ public class ChatHandler extends Thread{
 						hc.showJoinFailedBox();
 					}
 				}
+				//manages other messages
 				else{
 					Command command = getCommand(firstWord);
 					String operation = "";
 					switch(command){
+						//manages all member messages
 						case MEMBER:
 							operation = message.substring(0, message.indexOf(" "));
 							message = message.substring(message.indexOf(" ") +1);
+							//got a member list from the server
 							if(operation.equals("list")){
 								LinkedList<String> members = new LinkedList<String>();
 								while(message.indexOf(" ") != -1){
@@ -112,18 +119,22 @@ public class ChatHandler extends Thread{
 								members.add(message.substring(0));
 								cc.setMemberList(members);
 							}
+							//a member joined the chat
 							else if(operation.equals("joined")){
 								String newMemberName = message.substring(0);
 								cc.addMember(newMemberName);
 							}
+							//a member left the chat
 							else if(operation.equals("left")){
 								String newMemberName = message.substring(0);
 								cc.removeMember(newMemberName);
 							}
 							break;
+						//manages chatroom messages
 						case CHATROOM:
 							operation = message.substring(0, message.indexOf(" "));
 							message = message.substring(message.indexOf(" ") +1);
+							//got a list of chatrooms
 							if(operation.equals("list")){
 								LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
 								while(message.indexOf(" ") != -1){
@@ -142,6 +153,7 @@ public class ChatHandler extends Thread{
 								}
 								hc.setChatroomList(chatrooms);
 							}
+							//joined a chatroom
 							else if(operation.equals("joined")){
 								String chatroomName = message.substring(0);
 								message = message.substring(message.indexOf(" ") +1);
@@ -151,6 +163,7 @@ public class ChatHandler extends Thread{
 								hc.addMemberInChatroom(chatroomName);
 							}
 							break;
+						//manages the chat messages
 						case CHAT:
 							String username = message.substring(0, message.indexOf(" "));
 							byte[] m = message.substring(message.indexOf(" ") +1).getBytes("ISO-8859-1");
@@ -159,11 +172,14 @@ public class ChatHandler extends Thread{
 							}
 							cc.newMessage(username, m);
 							break;
+						//manages the key request
 						case KEYREQUEST:
 							String user = message.substring(0, message.indexOf(" "));
 							String userPubKey = message.substring(message.indexOf(" ") +1);
 							byte[] password = client.getChatroomPassword();
 							byte[] pubkey = userPubKey.getBytes(Charset.forName("ISO-8859-1"));
+
+							//encrypts the chat key and sends it to the server
 							try{
 								Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 								PublicKey key = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(pubkey));
@@ -174,6 +190,7 @@ public class ChatHandler extends Thread{
 							} 
 							client.write("keysend " + user + " " + new String(password, "ISO-8859-1"));
 							break;
+						//got key for the chat
 						case KEYANSWER:
 							String chatroomPassword = message.substring(0);
 							client.setChatroomPassword(chatroomPassword.getBytes(Charset.forName("ISO-8859-1")));
@@ -187,6 +204,7 @@ public class ChatHandler extends Thread{
 		}
 	}
 	
+	//filters the command from a message
 	private Command getCommand(String command){
 		if(command.equals("member")){
 			return Command.MEMBER;

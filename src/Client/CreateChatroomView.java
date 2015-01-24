@@ -14,6 +14,7 @@ public class CreateChatroomView extends JFrame{
 	private JTextField txtLanguage;
 	private JButton btnCreate;
 	
+	//creates the view to create a chatroom
 	public CreateChatroomView(){
 		super("Create Chatroom");
 		setLayout(new GridLayout(7,1));

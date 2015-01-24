@@ -44,9 +44,9 @@ public class Client{
 	private String username;
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
-	
 	private byte[] chatPassword;
-		
+	
+	//manages the frame and switches the content view
 	public Client (InputStream i, OutputStream o) {
 		this.i = new DataInputStream(i);
 		this.o = new DataOutputStream(o);
@@ -73,6 +73,7 @@ public class Client{
 		lc.activate();
 	}
 	
+	//generates the RSA public key for this client
 	public void generateRSA(){		
 		try {
 			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -88,6 +89,7 @@ public class Client{
 		}
 	}
 	
+	//method to write messages to the server
 	public void write(String message){
 		try {
 			byte[] m = message.getBytes("ISO-8859-1");
@@ -108,6 +110,7 @@ public class Client{
 		return o;
 	}
 	
+	//changes the content from the content pane
 	public void setContentPane(Container contentPane){
 		frame.setContentPane(contentPane);
 		frame.revalidate();
@@ -138,19 +141,20 @@ public class Client{
 		this.username = username;
 	}
 	
+	//creates a random password for the chat
 	public void createChatroomPassword(){
 		SecureRandom random = new SecureRandom();
 		chatPassword = new byte[16];
 		random.nextBytes(chatPassword);
 	}
 	
+	//encrypts a chat message
 	public byte[] encryptMessage(String plaintext){
 		SecretKeySpec keySpec = null;
 		keySpec = new SecretKeySpec(chatPassword, "AES");
 		Cipher cipher;
 		try {
 			cipher = Cipher.getInstance("AES");
-			System.out.println("max keylen: " + Cipher.getMaxAllowedKeyLength("AES/CBC/PKCS5Padding"));
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec);
 			return cipher.doFinal(plaintext.getBytes("ISO-8859-1"));
 		} catch (NoSuchAlgorithmException e) {
@@ -169,6 +173,7 @@ public class Client{
 		return null;
 	}
 	
+	//decrypts a chat message
 	public String decryptMessage(byte[] encryptedMessage){
 		SecretKeySpec keySpec = null;
 		keySpec = new SecretKeySpec(chatPassword, "AES");
@@ -197,12 +202,12 @@ public class Client{
 		return chatPassword;
 	}
 	
+	//decrypts the chat key with the private key
 	public void setChatroomPassword(byte[] chatPassword){
 		try {
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
 			chatPassword = cipher.doFinal(chatPassword);
-			System.out.println("got chatpassword: " + Arrays.toString(chatPassword));
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {

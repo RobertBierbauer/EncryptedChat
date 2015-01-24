@@ -17,6 +17,7 @@ public class LoginView extends JFrame{
 	private JButton btnLogin;
 	private JButton btnRegister;
 	
+	//creates the view to login or register
 	public LoginView(){
 		super ("Login");
 		setLayout(new GridLayout(2,1,0,8));

@@ -14,7 +14,6 @@ public class Chatroom {
 		this.password = password.equals("null") ? null : password;
 		this.language = language.equals("null") ? null : language;
 		this.members = members;
-		
 	}
 
 	public String getName() {
@@ -51,6 +50,5 @@ public class Chatroom {
 	
 	public void incrementMembers(){
 		this.members++;
-	}
-		
+	}		
 }

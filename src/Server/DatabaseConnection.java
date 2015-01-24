@@ -14,6 +14,7 @@ public class DatabaseConnection {
 	
 	public DatabaseConnection(){}
 
+	//open the database
 	public void openDatabase(){
 		try {
 			c = DriverManager.getConnection("jdbc:sqlite:Chat.db");
@@ -23,6 +24,7 @@ public class DatabaseConnection {
 		}
 	}
 	
+	//close the database
 	public void closeDatabase(){
 		try {
 			stmt.close();
@@ -33,6 +35,7 @@ public class DatabaseConnection {
 		}
 	}
 
+	//creates the table for the users if it doesn't exist already
 	public void createTable(){
 		String makeTable = "CREATE TABLE IF NOT EXISTS user (ID INTEGER PRIMARY key AUTOINCREMENT NOT NULL, " +
 				"NAME text NOT NULL, " +
@@ -44,6 +47,7 @@ public class DatabaseConnection {
 		}
 	}
 
+	//returns all users from the database
 	public HashMap<String, String> getUsers(){
 		HashMap<String, String> users = new HashMap<String, String>();
 		ResultSet rs;
@@ -61,6 +65,7 @@ public class DatabaseConnection {
 		return users;
 	}
 	
+	//add a user to the database
 	public void insertUser(String name, String password){
 		String createUser = "INSERT INTO user (NAME,PASSWORD) " +
                 "VALUES ('" + name + "', '" + password + "');";

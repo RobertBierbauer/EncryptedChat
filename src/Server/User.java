@@ -28,6 +28,8 @@ public class User {
 		}
 	}
 
+	
+	//getters and setters
 	public String getName() {
 		return name;
 	}

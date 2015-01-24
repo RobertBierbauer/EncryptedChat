@@ -11,6 +11,7 @@ public class LoginController implements ActionListener{
 	private Client client;
 	private HomeController hc;
 	
+	//manages the login view
 	public LoginController(Client client){
 		super();
 		view = new LoginView();
@@ -40,6 +41,7 @@ public class LoginController implements ActionListener{
 		client.setContentPane(view.getContentPane());
 	}
 	
+	//login or register was successful
 	public void loginRegisterSuccess(){
 		client.setUsername(view.getTxtUsername().getText());
 		client.generateRSA();
@@ -47,6 +49,7 @@ public class LoginController implements ActionListener{
 		hc.activate();
 	}
 	
+	//login failed
 	public void loginFail(){
 		view.getTxtUsername().setText("");
 		view.getTxtUsername().setBackground(Color.RED);
@@ -54,6 +57,7 @@ public class LoginController implements ActionListener{
 		view.getTxtPassword().setBackground(Color.RED);
 	}
 
+	//register failed
 	public void registerFail(){
 		view.getTxtUsername().setBackground(Color.RED);
 	}

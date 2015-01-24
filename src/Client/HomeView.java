@@ -15,6 +15,7 @@ public class HomeView extends JFrame{
 	JPanel pnlChatroomsList;
 	JScrollPane pnlScrollList;
 	
+	//creates the home view
 	public HomeView(){
 		super ("Home");
 		setLayout(new RelativeLayout());

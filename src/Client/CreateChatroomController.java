@@ -13,6 +13,7 @@ public class CreateChatroomController implements ActionListener{
 	private HomeController hc;
 	private ChatController cc;
 	
+	//manages the create chatroom view
 	public CreateChatroomController(Client client) {
 		super();
 		this.client = client;
@@ -35,6 +36,7 @@ public class CreateChatroomController implements ActionListener{
 		client.setContentPane(view.getContentPane());
 	}
 	
+	//chatroom was created successfully
 	public void createSuccess(){
 		String chatroomName = view.getTxtName().getText();
 		client.createChatroomPassword();
@@ -43,6 +45,7 @@ public class CreateChatroomController implements ActionListener{
 		cc.activate();
 	}
 	
+	//chatroom was not created
 	public void createFail(){
 		view.getTxtName().setText("");
 		view.getTxtName().setBackground(Color.RED);

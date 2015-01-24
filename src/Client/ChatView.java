@@ -8,6 +8,7 @@ import edu.cmu.relativelayout.RelativeLayout;
 
 import java.awt.*;
 
+//creates the Chat view
 public class ChatView extends JFrame{
 	private JScrollPane scrOutput;
 	private JTextPane txaOutput;
@@ -32,7 +33,7 @@ public class ChatView extends JFrame{
 		txtInput = new JTextField();
 		btnSend = new JButton("Send");
 		
-		
+		//sets the location fo the components
 		BindingFactory bf = new BindingFactory();
 		Binding leftEdge = bf.leftEdge();
 		Binding topEdge = bf.topEdge();
