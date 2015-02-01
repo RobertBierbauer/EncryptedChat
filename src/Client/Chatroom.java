@@ -50,5 +50,9 @@ public class Chatroom {
 	
 	public void incrementMembers(){
 		this.members++;
-	}		
+	}
+	
+	public void decrementMembers(){
+		this.members--;
+	}
 }

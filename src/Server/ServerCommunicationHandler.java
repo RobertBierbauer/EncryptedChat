@@ -38,7 +38,6 @@ public class ServerCommunicationHandler extends Thread{
 				//get a message form the stream
 				i.read(input);				
 				String message = new String (input, "ISO-8859-1");
-				System.out.println("Message: " + message);
 				command = getCommand(message);
 				message = message.substring(message.indexOf(" ")+1);
 				String username, password, chatroomName, chatroomPassword;
@@ -50,7 +49,7 @@ public class ServerCommunicationHandler extends Thread{
 						username = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
 						password =  message.substring(0);
-						if(server.isUser(username, password)){
+						if(server.isUser(username, password) && !server.isLoggedIn(username)){
 							write(o, "Accepted Login");
 							user = server.userConnected(socket, username);
 							String chatroomString = getChatroomList();
@@ -69,7 +68,6 @@ public class ServerCommunicationHandler extends Thread{
 						if(server.addUser(username, password)){
 							write(o, "Accepted Register");
 							user = server.userConnected(socket, username);
-							System.out.println(server.getChatrooms().size());
 							if(server.getChatrooms().size() > 0){
 								String chatroomString = getChatroomList();
 								write(user.getDataOutputStream(), chatroomString);
@@ -82,8 +80,9 @@ public class ServerCommunicationHandler extends Thread{
 						
 					//manages a create chatroom request
 					case CREATE:
-						chatroomName = message.substring(0, message.indexOf(" "));
-						message = message.substring(message.indexOf(" ")+1);
+						message = message.substring(1);
+						chatroomName = message.substring(0, message.indexOf("\" "));
+						message = message.substring(message.indexOf("\" ")+2);
 						chatroomPassword = message.substring(0, message.indexOf(" "));
 						message = message.substring(message.indexOf(" ")+1);
 						String chatroomLanguage =  message.substring(0);
@@ -94,7 +93,7 @@ public class ServerCommunicationHandler extends Thread{
 							user.setChatroom(chatroom);
 							write(o,"member joined " + user.getName());
 							String chatroomString = getChatroomList();
-							broadcast(chatroomString);
+							broadcastToList(chatroomString, server.getUsersOnHomeView());
 						}
 						else{
 							write(o,"Denied Create");
@@ -103,13 +102,14 @@ public class ServerCommunicationHandler extends Thread{
 						
 					//manages a join chatroom request
 					case JOIN:
-						chatroomName = message.substring(0, message.indexOf(" "));
-						message = message.substring(message.indexOf(" ")+1);
+						message = message.substring(1);
+						chatroomName = message.substring(0, message.indexOf("\" "));
+						message = message.substring(message.indexOf("\" ")+2);
 						chatroomPassword = message.substring(0);
 						Chatroom joinChatroom = server.isChatroom(chatroomName);
 						if(joinChatroom != null){
 							if(joinChatroom.getPassword().equals(chatroomPassword)){
-								write(o,"Accepted Join " + chatroomName);
+								write(o,"Accepted Join \"" + chatroomName + "\"");
 								
 								//add the user to the chatroom
 								LinkedList<User> usersFromChatroom = joinChatroom.getUsers();
@@ -128,8 +128,8 @@ public class ServerCommunicationHandler extends Thread{
 									allMembers += user.getName() + " ";
 								}
 								write(o,"member list " + allMembers);
-								String chatroomMemberCount = "chatroom joined " + chatroomName;
-								broadcast(chatroomMemberCount);
+								String chatroomMemberCount = "chatroom joined \"" + chatroomName + "\"";
+								broadcastToList(chatroomMemberCount, server.getUsersOnHomeView());
 							}
 							else{
 								//password for the chatroom was not correct
@@ -143,13 +143,13 @@ public class ServerCommunicationHandler extends Thread{
 						break;
 					//manages the chat request and broadcasts it to the users in the chatroom
 					case LEAVE:
-						chatroomName = message.substring(0);
+						chatroomName = message.substring(1, message.length()-1);
 						Chatroom cr = server.isChatroom(chatroomName);
 						if(cr != null){
 							server.leftChatroom(user, cr);
-							for(User u : cr.getUsers()){
-								write(u.getDataOutputStream(), "member left " + user.getName());
-							}
+							String chatroomList = "chatroom left \"" + chatroomName + "\"";
+							broadcastToList(chatroomList, server.getUsersOnHomeView());
+							broadcastToList("member left " + user.getName(), cr.getUsers());
 							write(o, "Accepted Leave");
 							String chatroomString = getChatroomList();
 							write(o, chatroomString);
@@ -157,8 +157,9 @@ public class ServerCommunicationHandler extends Thread{
 						break;
 					//manages the chat request and broadcasts it to the users in the chatroom
 					case CHAT:
-						chatroomName = message.substring(0, message.indexOf(" "));
-						message = message.substring(message.indexOf(" ")+1);
+						message = message.substring(1);
+						chatroomName = message.substring(0, message.indexOf("\" "));
+						message = message.substring(message.indexOf("\" ")+2);
 						String chatMessage = "chat " + user.getName() + " " + message;
 						cr = server.isChatroom(chatroomName);
 						if(cr != null){
@@ -191,16 +192,17 @@ public class ServerCommunicationHandler extends Thread{
 			}
 		} finally {
 			try {
-				socket.close ();
 				if(user != null){
-					if(user.getChatroom() != null){
-						server.leftChatroom(user, user.getChatroom());
-						for(User u : user.getChatroom().getUsers()){
-							write(u.getDataOutputStream(), "member left " + user.getName());
+					if(server.userDisconnected(user)){
+						if(user.getChatroom() != null){
+							Chatroom chatroom = user.getChatroom();
+							server.leftChatroom(user, chatroom);
+							broadcastToList("member left " + user.getName(), chatroom.getUsers());
+							broadcastToList("chatroom left \"" + chatroom.getName() + "\"", server.getUsersOnHomeView());
 						}
 					}
-					server.userDisconnected(user);
 				}
+				socket.close ();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
@@ -245,7 +247,7 @@ public class ServerCommunicationHandler extends Thread{
 		String chatroomString = "chatroom list";
 		if(chatrooms.size() >0){
 			for(Chatroom cr : chatrooms){
-				chatroomString += " " + cr.getName() + " " + cr.getPassword() + " " + cr.getUsers().size() + " " + cr.getLanguage();
+				chatroomString += " \"" + cr.getName() + "\" " + cr.getPassword() + " " + cr.getUsers().size() + " " + cr.getLanguage();
 			}
 		}
 		else{
@@ -256,14 +258,6 @@ public class ServerCommunicationHandler extends Thread{
 	
 	//broadcasts a message to a list of users
 	private void broadcastToList (String message, LinkedList<User> users) {
-		for(User user : users){
-			write(user.getDataOutputStream(), message);
-		}
-	}
-
-	//broadcasts a message to all users
-	private void broadcast (String message) {
-		LinkedList<User> users = server.getCurrentUsers();
 		for(User user : users){
 			write(user.getDataOutputStream(), message);
 		}

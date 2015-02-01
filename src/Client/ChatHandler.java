@@ -58,7 +58,7 @@ public class ChatHandler extends Thread{
 						ccc.createSuccess();
 					}
 					else if(message.indexOf(" ") != -1 && message.substring(0, message.indexOf(" ")).equals("Join")){
-						message = message.substring(message.indexOf(" ")+1);
+						message = message.substring(message.indexOf(" \"")+2, message.length()-1);
 						if(hc == null){
 							hc = client.getHomeController();
 						}
@@ -129,8 +129,8 @@ public class ChatHandler extends Thread{
 						}
 						//a member left the chat
 						else if(operation.equals("left")){
-							String newMemberName = message.substring(0);
-							cc.removeMember(newMemberName);
+							String leftMemberName = message.substring(0);
+							cc.removeMember(leftMemberName);
 						}
 						break;
 						//manages chatroom messages
@@ -142,8 +142,9 @@ public class ChatHandler extends Thread{
 							LinkedList<Chatroom> chatrooms = new LinkedList<Chatroom>();
 							if(!message.substring(0).equals("empty")){
 								while(message.indexOf(" ") != -1){
-									String chatroomName = message.substring(0, message.indexOf(" "));
-									message = message.substring(message.indexOf(" ") +1);
+									message = message.substring(1);
+									String chatroomName = message.substring(0, message.indexOf("\" "));
+									message = message.substring(message.indexOf("\" ") +2);
 									String chatroomPassword = message.substring(0, message.indexOf(" "));
 									message = message.substring(message.indexOf(" ") +1);
 									int memberCount = Integer.parseInt(message.substring(0, message.indexOf(" ")));
@@ -160,15 +161,24 @@ public class ChatHandler extends Thread{
 						}
 						//joined a chatroom
 						else if(operation.equals("joined")){
-							String chatroomName = message.substring(0);
+							String chatroomName = message.substring(1, message.length()-1);
 							message = message.substring(message.indexOf(" ") +1);
 							if(hc == null){
 								hc = client.getHomeController();
 							}
 							hc.addMemberInChatroom(chatroomName);
 						}
+						//left a chatroom
+						else if(operation.equals("left")){
+							String chatroomName = message.substring(1, message.length()-1);
+							message = message.substring(message.indexOf(" ") +1);
+							if(hc == null){
+								hc = client.getHomeController();
+							}
+							hc.removeMemberInChatroom(chatroomName);
+						}
 						break;
-						//manages the chat messages
+					//manages the chat messages
 					case CHAT:
 						String username = message.substring(0, message.indexOf(" "));
 						byte[] m = message.substring(message.indexOf(" ") +1).getBytes("ISO-8859-1");

@@ -80,11 +80,11 @@ public class HomeController implements ActionListener{
 
 						if (option == JOptionPane.OK_OPTION) {
 							String password = new String(txtPassword.getPassword());
-							client.write("join " + chatroomName + " " + password);
+							client.write("join \"" + chatroomName + "\" " + password);
 						}
 					}
 					else{
-						client.write("join " + chatroomName + " null");
+						client.write("join \"" + chatroomName + "\" null");
 					}
 				}
 			});
@@ -126,6 +126,20 @@ public class HomeController implements ActionListener{
 		updateChatroomListPanel();
 	}
 
+	//decrements the counter of members in the chatroom list and removes the chatroom if empty
+	public void removeMemberInChatroom(String chatroomName){
+		for(Chatroom chatroom : chatrooms){
+			if(chatroom.getName().equals(chatroomName)){
+				chatroom.decrementMembers();
+				if(chatroom.getMembers() == 0){
+					chatrooms.remove(chatroom);
+				}
+				break;
+			}
+		}
+		updateChatroomListPanel();
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == view.getBtnCreate()){

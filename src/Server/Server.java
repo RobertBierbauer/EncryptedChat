@@ -7,10 +7,11 @@ import java.util.*;
 
 
 public class Server {
-	HashMap<String, String> users;
-	LinkedList<User> currentUsers;
-	LinkedList<Chatroom> chatrooms;
-	DatabaseConnection dbc;
+	private HashMap<String, String> users;
+	private LinkedList<User> currentUsers;
+	private LinkedList<User> usersOnHomeView;
+	private LinkedList<Chatroom> chatrooms;
+	private DatabaseConnection dbc;
 
 	public Server (int port, DatabaseConnection dbc) throws IOException {
 		ServerSocket server = new ServerSocket (port);
@@ -18,11 +19,10 @@ public class Server {
 		users = new HashMap<String, String>();
 		setUsers(dbc.getUsers());
 		currentUsers = new LinkedList<User>();
+		usersOnHomeView = new LinkedList<User>();
 		chatrooms = new LinkedList<Chatroom>();
 		while (true) {
 			Socket client = server.accept();
-			System.out.println ("Accepted from " + client.getInetAddress ());
-
 			ServerCommunicationHandler c = new ServerCommunicationHandler (this, client);
 			c.start ();
 		}
@@ -45,6 +45,15 @@ public class Server {
 		}
 	}
 
+	public boolean isLoggedIn(String username){
+		for(User u : currentUsers){
+			if(u.getName().equals(username)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	//checks if a username and password is correct
 	public boolean isUser(String username, String password){
 		if(users.containsKey(username)){
@@ -84,17 +93,24 @@ public class Server {
 	public User userConnected(Socket socket, String username){
 		User user = new User(socket, username);
 		currentUsers.add(user);
+		usersOnHomeView.add(user);
 		return user;
 	}
 
 	//removes a user from a list if he disconnected
-	public void userDisconnected(User user){
+	public boolean userDisconnected(User user){
 		currentUsers.remove(user);
+		if(usersOnHomeView.contains(user)){
+			usersOnHomeView.remove(user);
+		}
+		return true;
 	}
 
 	//adds a user to a chatroom if he joins
 	public void joinChatroom(User user, Chatroom chatroom){
 		chatroom.addUser(user);
+		user.setChatroom(chatroom);
+		usersOnHomeView.remove(user);
 	}
 
 	//removes a user from the chatroom if he leaves
@@ -103,11 +119,20 @@ public class Server {
 		if(chatroom.getUsers().size() == 0){
 			chatrooms.remove(chatroom);
 		}
+		user.setChatroom(null);
+		if(currentUsers.contains(user)){
+			usersOnHomeView.add(user);
+		}
 	}
 
 	//returns the list of all users currently connected
 	public LinkedList<User> getCurrentUsers() {
 		return currentUsers;
+	}
+	
+	//returns the list of all users currently on the home view
+	public LinkedList<User> getUsersOnHomeView() {
+		return usersOnHomeView;
 	}
 
 	//returns a user by its name

@@ -31,7 +31,7 @@ public class ChatController implements ActionListener{
 			if(!view.getTxtInput().getText().equals("")){
 				byte[] m = client.encryptMessage(view.getTxtInput().getText());
 				try {
-					client.write("chat " + chatroomName + " " + new String(m, "ISO-8859-1"));
+					client.write("chat \"" + chatroomName + "\" " + new String(m, "ISO-8859-1"));
 				} catch (UnsupportedEncodingException e1) {
 					e1.printStackTrace();
 				}
@@ -39,8 +39,7 @@ public class ChatController implements ActionListener{
 			}
 		}
 		else if(e.getSource() == view.getBtnLeave()){
-			System.out.println("click");
-			client.write("leave " + chatroomName);
+			client.write("leave \"" + chatroomName + "\"");
 		}		
 	}
 	
@@ -54,6 +53,7 @@ public class ChatController implements ActionListener{
 		client.setContentPane(view.getContentPane());
 		view.getTxaOutput().setText("");
 		view.getTxtInput().setText("");
+		view.getModel().removeAllElements();
 	}
 	
 	//sets the memberlist in the chat

@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 
 public class LoginController implements ActionListener{
 	private LoginView view;
@@ -65,30 +66,32 @@ public class LoginController implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == view.getBtnLogin()){
 			boolean filled = true;
-			if(view.getTxtUsername().getText().equals("")){
+			if(view.getTxtUsername().getText().equals("") || view.getTxtUsername().getText().indexOf(" ") != -1){
 				view.getTxtUsername().setBackground(Color.RED);
 				filled = false;
 			}
-			if(view.getTxtPassword().getText().equals("")){
+			String password = new String(view.getTxtPassword().getPassword());
+			if(password.equals("") || password.indexOf(" ") != -1){
 				view.getTxtPassword().setBackground(Color.RED);
 				filled = false;
 			}
 			if(filled){
-				client.write("login " + view.getTxtUsername().getText() + " " + view.getTxtPassword().getText());
+				client.write("login " + view.getTxtUsername().getText() + " " + password);
 			}
 		}
 		else{
 			boolean filled = true;
-			if(view.getTxtUsername().getText().equals("")){
+			if(view.getTxtUsername().getText().equals("") || view.getTxtUsername().getText().indexOf(" ") != -1){
 				view.getTxtUsername().setBackground(Color.RED);
 				filled = false;
 			}
-			if(view.getTxtPassword().getText().equals("")){
+			String password = new String(view.getTxtPassword().getPassword());
+			if(password.equals("") || password.indexOf(" ") != -1){
 				view.getTxtPassword().setBackground(Color.RED);
 				filled = false;
 			}
 			if(filled){
-				client.write("register " + view.getTxtUsername().getText() + " " + view.getTxtPassword().getText());
+				client.write("register " + view.getTxtUsername().getText() + " " + password);
 			}
 		}
 	}

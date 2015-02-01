@@ -16,7 +16,7 @@ public class CreateChatroomController implements ActionListener{
 		this.client = client;
 		view = new CreateChatroomView();
 		view.getBtnCreate().addActionListener(this);
-		
+		view.getBtnCancel().addActionListener(this);
 		final Color txtDefault = view.getTxtName().getBackground();
 		view.getTxtName().addMouseListener(new MouseAdapter() {
 			@Override
@@ -50,11 +50,20 @@ public class CreateChatroomController implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(view.getTxtName().getText().equals("")){
-			view.getTxtName().setBackground(Color.RED);
+		if(e.getSource() == view.getBtnCreate()){
+			if(view.getTxtName().getText().equals("")){
+				view.getTxtName().setBackground(Color.RED);
+			}
+			else{
+				String password = new String(view.getTxtPassword().getPassword());
+				client.write("create \"" + view.getTxtName().getText() + "\" " + (password.equals("") ? "null" : password) + " " + (view.getTxtLanguage().getText().equals("") ? "null" : view.getTxtLanguage().getText()));
+			}
 		}
-		else{
-			client.write("create " + view.getTxtName().getText() + " " + (view.getTxtPassword().getText().equals("") ? "null" : view.getTxtPassword().getText()) + " " + (view.getTxtLanguage().getText().equals("") ? "null" : view.getTxtLanguage().getText()));
+		else if(e.getSource() == view.getBtnCancel()){
+			view.getTxtName().setText("");
+			view.getTxtPassword().setText("");
+			view.getTxtLanguage().setText("");
+			client.getHomeController().activate();
 		}
 	}
 	

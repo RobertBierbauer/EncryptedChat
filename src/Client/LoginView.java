@@ -42,7 +42,7 @@ public class LoginView extends JFrame{
 		this.txtUsername = txtUsername;
 	}
 
-	public JTextField getTxtPassword() {
+	public JPasswordField getTxtPassword() {
 		return txtPassword;
 	}
 
